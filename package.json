@@ -1,0 +1,46 @@
+{
+  "name": "mandelbrot",
+  "version": "0.0.0",
+  "main": "src/index.js",
+  "author": "djjw@outlook.com",
+  "standard": {
+    "parser": "babel-eslint"
+  },
+  "scripts": {
+    "upgrade-interactive": "npm-check --update --specials",
+    "start": "webpack serve --mode development",
+    "watch": "webpack -w"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-proposal-decorators": "^7.12.1",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-react": "^7.12.1",
+    "@babel/register": "^7.12.1",
+    "@babel/runtime": "^7.12.1",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
+    "eslint": "^7.12.1",
+    "eslint-config-standard": "^16.0.0",
+    "eslint-config-standard-react": "^11.0.1",
+    "eslint-plugin-babel": "^5.3.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-standard": "^4.0.2",
+    "npm-check": "^5.9.2",
+    "webpack": "4",
+    "webpack-cli": "^4.1.0",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "chart.js": "^2.9.4",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  }
+}
