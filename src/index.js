@@ -1,47 +1,92 @@
-import React, {useRef} from 'react'
-import ReactDOM        from 'react-dom'
-import Chart           from 'chart.js'
+import React, {useEffect, useRef} from 'react'
+import ReactDOM                   from 'react-dom'
+import Chart                      from 'chart.js'
+import * as math from 'mathjs'
 
-let interval
+// const a = 0 // real, x axis
+// const b = 0 // imaginary, y axis
+// const i = Math.sqrt(-1)
 
-function makeChart (canvas) {
-  console.log('try and render')
+const complexNumber = math.complex
 
-  if (canvas.current) {
+console.log(complexNumber)
 
-    console.log('render')
-
-    const chart = new Chart(
-      canvas.current,
-      {
-        type: 'scatter',
-        data: {
-          datasets: [{
-            label: 'Scatter Dataset',
-            data : [
-              {x:-10, y:0},
-              {x:0, y:10},
-              {x:10, y:5}
-            ]
-          }]
-        },
-        options: {}
-      }
-    )
-
-    clearInterval(interval)
-    console.log(chart)
-  }
+function mandelbrot (Z, C) {
+  return C.add(Z.mul(Z))
 }
+
+const maxIter = 100
+
+function iterateMandelbrot (startingPoint) {
+  let i = 0
+  let Z = complexNumber(0, 0)
+  const C = complexNumber(startingPoint[0], startingPoint[1])
+
+  while (Z.abs() <= 2) {
+    if (i++ === maxIter) return false
+
+    Z = mandelbrot(Z, C)
+
+    console.log('current Z value:', Z.toVector())
+  }
+
+  return i
+}
+
+const data = [
+  // example
+  {x:-1, y:0, color:'red'},
+  {x:0, y:1, fillColor:'green'},
+  {x:1, y:0.5, fillColor:'blue'}
+]
+
+const iterationAmount = iterateMandelbrot([0.5, 0.5])
+console.log('iteration amount', iterationAmount)
+
+// // radius
+// // pointStyle
+// // rotation
+// // backgroundColor
+// // borderWidth
+// // borderColor
+// // hitRadius
+// // hoverRadius
+// // hoverBorderWidth
+
+// function makeChart (canvas) {
+//   if (canvas.current) {
+//     return new Chart(
+//       canvas.current,
+//       {
+//         type: 'scatter',
+//         data: {
+//           datasets: [{
+//             label: 'Mandelbrot',
+//             data
+//           }]
+//         },
+//         options: {
+//           scales: {
+//             xAxes: [{ticks:{max:2, min:-2}}],
+//             yAxes: [{ticks:{max:2, min:-2}}]
+//           },
+//           points: {
+//             backgroundColor: 'white'
+//           }
+//         }
+//       }
+//     )
+//   }
+// }
 
 function App () {
   const canvas = useRef(null)
 
-  // [{x: 10, y: 20}, {x: 15, y: 10}]
-  interval = global.setInterval(() => makeChart(canvas), 10)
+  // useEffect(() => {makeChart(canvas)}, [])
+
   return (
-    <div>
-      <canvas ref={canvas} width="400" height="400" />
+    <div style={{flex:1}}>
+      <canvas ref={canvas} />
     </div>
   )
 }
