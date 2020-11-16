@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react'
-import ReactDOM                   from 'react-dom'
 import * as math from 'mathjs'
 
 function mandelbrot (Z, C) {
@@ -78,12 +76,14 @@ function getFillStyle (pixelX, pixelY) {
   else return '#111'
 }
 
-function drawNextX (canvasContext, x, y) {
-  canvasContext.fillStyle = 'black'
-  canvasContext.fillRect(x + 1, y, stepSize, stepSize)
+function drawPixel (canvasContext, x, y) {
+  window.setTimeout(() => {
+    canvasContext.fillStyle = 'black'
+    canvasContext.fillRect(x + 1, y, stepSize, stepSize)
 
-  canvasContext.fillStyle = getFillStyle(x, y)
-  canvasContext.fillRect(x, y, stepSize, stepSize)
+    canvasContext.fillStyle = getFillStyle(x, y)
+    canvasContext.fillRect(x, y, stepSize, stepSize)
+  }, 0)
 }
 
 function logStats () {
@@ -110,41 +110,30 @@ function logStats () {
 }
 
 function drawMandelbrot (canvasRef, currentPixel, setCurrentPixel) {
-  if (canvasRef.current) {
-    let {x, y} = currentPixel
-    const canvasContext = canvasRef.current.getContext('2d')
+  const canvasContext = canvasRef.getContext('2d')
+  let x = 0
+  let y = 0
 
-    if (y <= size) {
-      if (x <= size) {
-        drawNextX(canvasContext, x, y)
-        setCurrentPixel({x:x += stepSize, y})
-
-      } else {
-        setCurrentPixel({x:0, y:y += stepSize})
-
-      }
-    } else {
-      console.log('done')
-      logStats()
+  while (y <= size) {
+    while (x <= size) {
+      drawPixel(canvasContext, x, y)
+      x += stepSize
     }
-  }
-}
 
-function App () {
-  const canvasRef = useRef(null)
-  const [currentPixel, setCurrentPixel] = useState({x:0, y:0})
-
-  function drawNextIteration () {
-    window.setTimeout(() => {
-      drawMandelbrot(canvasRef, currentPixel, setCurrentPixel)
-    }, 0)
+    x = 0
+    y += stepSize
   }
 
-  useEffect(drawNextIteration, [canvasRef, currentPixel])
-
-  return (
-    <canvas width={size} height={size} ref={canvasRef} />
-  )
+  console.log('done')
+  logStats()
 }
 
-ReactDOM.render(<App />, document.getElementById('root'))
+const canvasElement = document.createElement('canvas')
+canvasElement.setAttribute('width', size)
+canvasElement.setAttribute('height', size)
+
+document.getElementById('root').appendChild(canvasElement)
+
+console.log('canvasElement', canvasElement)
+
+drawMandelbrot(canvasElement)
