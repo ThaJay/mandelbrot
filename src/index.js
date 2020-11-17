@@ -5,7 +5,7 @@ function mandelbrot (Z, C) {
 }
 
 const complexNumber = math.complex
-const maxIter = 1000
+const maxIter = 720
 
 function iterateMandelbrot (startingX, startingY) {
   let i = 0
@@ -24,66 +24,86 @@ function iterateMandelbrot (startingX, startingY) {
 const width = window.innerWidth
 const height = window.innerHeight
 
-const size = (width < height ? width : height)
+const canvasSize = (width < height ? width : height)
 
-const stepSize = Math.round(size / 500)
+const stepSize = Math.round(canvasSize / 500)
+// const stepSize = 1
 
-function coordinateForPixel (p) {
-  return Math.round(((p / (size / 4)) - 2) * size) / size
+const gridWidth = 0.1
+const startX = -0.5
+const gridHeight = -0.1
+const startY = 0.65
+
+function coordinateForPixel (pixelNumber, gridSize, gridStart) {
+  const canvasGridRatio = canvasSize / gridSize
+  const gridNumber = pixelNumber / canvasGridRatio
+
+  return Math.round((gridNumber + gridStart) * canvasSize) / canvasSize
 }
 
 function pixelToX (x) {
-  return coordinateForPixel(x)
+  return coordinateForPixel(x, gridWidth, startX)
 }
 
 function pixelToY (y) {
-  return -coordinateForPixel(y)
+  return coordinateForPixel(y, gridHeight, startY)
 }
-
-// [0,0] = [-2,-2]
-// [400,400] = [2,2]
-// [200,200] = [0,0]
 
 const iterationCounts = []
 
-const stylingFactor = maxIter / 16
-const hueMax = 360
-const luminanceMax = 50
+function getStylingLoopValue (iterationCount, maxValue) {
+  return iterationCount % maxValue
+}
 
-function getStylingValue (iterationCount, maxValue) {
-  const number = iterationCount / stylingFactor * maxValue
+function getStylingToMaxValue (iterationCount, maxValue, stylingFactor) {
+
+  // stylingFactor = how many iterations is 1% of maxValue
+  const number = Math.pow(iterationCount / stylingFactor, 2) * maxValue
 
   if (number >= maxValue) return maxValue
   else return Math.round(number)
 }
 
+const hueMax = 360
+
 function getHue (iterationCount) {
-  return getStylingValue(iterationCount, hueMax)
+  return getStylingToMaxValue(iterationCount, hueMax, maxIter / 6)
+  // return getStylingLoopValue(iterationCount, hueMax)
 }
 
+const luminanceMax = 50
+
 function getLuminance (iterationCount) {
-  return getStylingValue(iterationCount, luminanceMax)
+  // return 50
+  return getStylingToMaxValue(iterationCount, luminanceMax, 30)
+  // return getStylingLoopValue(iterationCount, luminanceMax)
 }
 
 function getFillStyle (pixelX, pixelY) {
   const iterationCount = iterateMandelbrot(pixelToX(pixelX), pixelToY(pixelY))
   iterationCounts.push(iterationCount)
 
-  // const hslString = `hsl(${getHue(iterationCount)}, 100%, 50%)`
   const hslString = `hsl(${getHue(iterationCount)}, 100%, ${getLuminance(iterationCount)}%)`
 
   if (iterationCount) return hslString
-  else return '#111'
+  else return '#131313'
 }
 
 function drawPixel (canvasContext, x, y) {
-  window.setTimeout(() => {
-    canvasContext.fillStyle = 'black'
-    canvasContext.fillRect(x + 1, y, stepSize, stepSize)
+  canvasContext.fillStyle = 'red'
+  canvasContext.fillRect(x + stepSize, y, stepSize, stepSize)
 
-    canvasContext.fillStyle = getFillStyle(x, y)
-    canvasContext.fillRect(x, y, stepSize, stepSize)
-  }, 0)
+  canvasContext.fillStyle = getFillStyle(x, y)
+  canvasContext.fillRect(x, y, stepSize, stepSize)
+}
+
+function drawPixelPromise (canvasContext, x, y) {
+  return new Promise(resolve => {
+    window.setTimeout(() => {
+      drawPixel(canvasContext, x, y)
+      resolve()
+    }, 0)
+  })
 }
 
 function logStats () {
@@ -106,16 +126,14 @@ function logStats () {
   console.log('amount of pixels calculated', iterationCounts.length)
   console.log('average iteration count:', getAverageIterationCount())
   console.log('median iteration count', getMedianIterationCount())
-  // 6 iterations = 100%
+  console.log('time elapsed', Math.round((endTime - startTime) / 100) / 10, 'seconds')
 }
 
-function drawMandelbrot (canvasRef, currentPixel, setCurrentPixel) {
-  const canvasContext = canvasRef.getContext('2d')
-  let x = 0
-  let y = 0
+// fast but nothing is shown until it is done
+function drawNextPixelSynchronous (canvasContext, x, y) {
+  while (y <= canvasSize) {
+    while (x <= canvasSize) {
 
-  while (y <= size) {
-    while (x <= size) {
       drawPixel(canvasContext, x, y)
       x += stepSize
     }
@@ -125,15 +143,75 @@ function drawMandelbrot (canvasRef, currentPixel, setCurrentPixel) {
   }
 
   console.log('done')
+  endTime = performance.now()
   logStats()
 }
 
+// ensure calculation happens after previous pixel is drawn but really freaking slow
+async function drawNextPixelPromise (canvasContext, x, y) {
+  await drawPixelPromise(canvasContext, x, y)
+
+  if (x <= canvasSize) {
+    x += stepSize
+
+  } else if (y <= canvasSize) {
+    x = 0
+    y += stepSize
+
+  } else {
+    console.log('done')
+    endTime = performance.now()
+    logStats()
+
+    return
+  }
+
+  drawNextPixelPromise(canvasContext, x, y)
+}
+
+// readies all pixels in one go and then starts calculating them
+function drawNextPixelDeferred (canvasContext, x, y) {
+  while (y <= canvasSize) {
+    while (x <= canvasSize) {
+      const newX = x
+      const newY = y
+      window.setTimeout(() => {
+        drawPixel(canvasContext, newX, newY)
+      }, 0)
+
+      x += stepSize
+    }
+
+    x = 0
+    y += stepSize
+  }
+
+  window.setTimeout(() => {
+    console.log('done')
+    endTime = performance.now()
+    logStats()
+  }, 0)
+}
+
+const startTime = performance.now()
+let endTime
+
+function drawMandelbrot (canvasRef, currentPixel, setCurrentPixel) {
+  console.log('drawMandelbrot')
+
+  const canvasContext = canvasRef.getContext('2d')
+  const x = 0
+  const y = 0
+
+  // drawNextPixelSynchronous(canvasContext, x, y)
+  // drawNextPixelPromise(canvasContext, x, y)
+  drawNextPixelDeferred(canvasContext, x, y)
+}
+
 const canvasElement = document.createElement('canvas')
-canvasElement.setAttribute('width', size)
-canvasElement.setAttribute('height', size)
+canvasElement.setAttribute('width', canvasSize)
+canvasElement.setAttribute('height', canvasSize)
 
 document.getElementById('root').appendChild(canvasElement)
-
-console.log('canvasElement', canvasElement)
 
 drawMandelbrot(canvasElement)

@@ -15,7 +15,8 @@ module.exports = {
   extends: ['standard', 'plugin:react/recommended', 'standard-react'],
   plugins: ['babel', 'import', 'jsx-a11y', 'react'],
   globals: {
-    React: true
+    React      : true,
+    performance: true
   },
   rules: {
     'babel/new-cap'              : 1,
