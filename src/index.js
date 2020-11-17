@@ -29,10 +29,10 @@ const canvasSize = (width < height ? width : height)
 const stepSize = Math.round(canvasSize / 500)
 // const stepSize = 1
 
-const gridWidth = 0.1
-const startX = -0.5
-const gridHeight = -0.1
-const startY = 0.65
+const gridWidth = 4
+const startX = -2
+const gridHeight = -4
+const startY = 2
 
 function coordinateForPixel (pixelNumber, gridSize, gridStart) {
   const canvasGridRatio = canvasSize / gridSize
@@ -67,7 +67,10 @@ function getStylingToMaxValue (iterationCount, maxValue, stylingFactor) {
 const hueMax = 360
 
 function getHue (iterationCount) {
-  return getStylingToMaxValue(iterationCount, hueMax, maxIter / 6)
+  return getStylingLoopValue(
+    getStylingToMaxValue(iterationCount, hueMax, maxIter / 6) + 90,
+    hueMax
+  )
   // return getStylingLoopValue(iterationCount, hueMax)
 }
 

@@ -9,7 +9,8 @@
   "scripts": {
     "upgrade-interactive": "npm-check --update --specials",
     "start": "webpack serve --mode development",
-    "watch": "webpack -w"
+    "watch": "webpack -w",
+    "compile": "webpack --mode production"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",
